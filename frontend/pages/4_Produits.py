@@ -1,6 +1,6 @@
 import streamlit as st
 
-from frontend.components.api_client import get, post
+from frontend import services
 from frontend.components.auth import require_login
 from frontend.components.campaign_selector import advance_button, select_campaign
 
@@ -15,7 +15,7 @@ if campaign is None:
 advance_button(campaign["id"], "Executer l'etape 'Recherche de produits'")
 
 st.subheader("Produits proposes")
-produits = get(f"/campaigns/{campaign['id']}/products")
+produits = services.list_products(campaign["id"])
 if not produits:
     st.info("Aucun produit pour le moment. Executez l'etape ci-dessus (apres avoir choisi une niche).")
     st.stop()
@@ -29,10 +29,7 @@ if proposes:
     choix = st.multiselect("Produits a importer", list(options.keys()))
     if st.button("Importer la selection") and choix:
         try:
-            post(
-                f"/campaigns/{campaign['id']}/products/import",
-                json={"product_ids": [options[c] for c in choix]},
-            )
+            services.import_products(campaign["id"], [options[c] for c in choix])
             st.success("Produits importes.")
             st.rerun()
         except Exception as exc:  # noqa: BLE001

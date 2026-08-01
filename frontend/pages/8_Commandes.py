@@ -1,6 +1,6 @@
 import streamlit as st
 
-from frontend.components.api_client import get, post
+from frontend import services
 from frontend.components.auth import require_login
 from frontend.components.campaign_selector import advance_button, select_campaign
 
@@ -14,9 +14,8 @@ if campaign is None:
 
 advance_button(campaign["id"], "Executer l'etape 'Preparation des ventes'")
 
-try:
-    store = get(f"/campaigns/{campaign['id']}/store")
-except Exception:
+store = services.get_store(campaign["id"])
+if store is None:
     st.info("Boutique non encore initialisee.")
     st.stop()
 
@@ -30,28 +29,21 @@ with st.form("nouvelle_commande"):
     submitted = st.form_submit_button("Creer la commande")
 
 if submitted:
-    order = post(
-        "/orders",
-        json={
-            "store_id": store_id,
-            "client_nom": client_nom,
-            "client_contact": client_contact,
-            "montant": montant,
-        },
+    order = services.create_order(
+        store_id=store_id, client_nom=client_nom, client_contact=client_contact, montant=montant
     )
     st.success(f"Commande #{order['id']} creee.")
     st.rerun()
 
 st.divider()
 st.subheader("Initier un paiement")
-providers = get("/payments/providers")["providers"]
+providers = services.list_payment_providers()
 order_id_input = st.number_input("ID de la commande", min_value=1, step=1)
 provider_choisi = st.selectbox("Moyen de paiement", providers)
 if st.button("Initier le paiement"):
     try:
-        result = post(
-            "/payments/initiate",
-            json={"order_id": int(order_id_input), "provider": provider_choisi, "currency": "XOF"},
+        result = services.initiate_payment(
+            order_id=int(order_id_input), provider=provider_choisi, currency="XOF"
         )
         st.success(result["message"] or "Paiement initie.")
         if result["instructions"]:
@@ -66,13 +58,13 @@ tx_ref = st.text_input("Reference de transaction (paiement manuel)")
 action_col1, action_col2 = st.columns(2)
 if action_col1.button("Confirmer le paiement") and tx_ref:
     try:
-        post("/payments/webhook/manual", json={"transaction_ref": tx_ref, "action": "confirm"})
+        services.confirm_manual_payment(tx_ref, "confirm")
         st.success("Paiement confirme.")
     except Exception as exc:  # noqa: BLE001
         st.error(f"Erreur : {exc}")
 if action_col2.button("Rejeter le paiement") and tx_ref:
     try:
-        post("/payments/webhook/manual", json={"transaction_ref": tx_ref, "action": "reject"})
+        services.confirm_manual_payment(tx_ref, "reject")
         st.warning("Paiement rejete.")
     except Exception as exc:  # noqa: BLE001
         st.error(f"Erreur : {exc}")

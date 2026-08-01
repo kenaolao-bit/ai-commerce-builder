@@ -1,6 +1,6 @@
 import streamlit as st
 
-from frontend.components.api_client import get
+from frontend import services
 from frontend.components.auth import require_login
 from frontend.components.campaign_selector import advance_button, select_campaign
 
@@ -14,9 +14,8 @@ if campaign is None:
 
 advance_button(campaign["id"], "Executer l'etape 'Creation de la marque'")
 
-try:
-    brand = get(f"/campaigns/{campaign['id']}/brand")
-except Exception:
+brand = services.get_brand(campaign["id"])
+if brand is None:
     st.info("Marque non encore creee. Executez l'etape ci-dessus.")
     st.stop()
 

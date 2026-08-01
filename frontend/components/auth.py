@@ -1,19 +1,23 @@
-"""Ecran de connexion admin, partage par toutes les pages Streamlit."""
+"""Ecran de connexion admin, partage par toutes les pages Streamlit.
 
-import os
+Appelle directement backend.security.auth (pas de requete HTTP) : Streamlit
+Community Cloud ne lance qu'un seul processus Python, il n'y a pas de
+serveur API separe a joindre.
+"""
 
-import requests
 import streamlit as st
 
-API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:8000")
+from frontend import services
 
 
 def require_login() -> None:
-    if st.session_state.get("token"):
+    services.ensure_initialized()
+
+    if st.session_state.get("authenticated"):
         with st.sidebar:
             st.caption(f"Connecte : {st.session_state.get('email', '')}")
             if st.button("Se deconnecter"):
-                st.session_state.pop("token", None)
+                st.session_state.pop("authenticated", None)
                 st.session_state.pop("email", None)
                 st.rerun()
         return
@@ -25,17 +29,11 @@ def require_login() -> None:
         submitted = st.form_submit_button("Se connecter")
 
     if submitted:
-        try:
-            response = requests.post(
-                f"{API_BASE_URL.rstrip('/')}/auth/login",
-                json={"email": email, "password": password},
-                timeout=30,
-            )
-            response.raise_for_status()
-            st.session_state["token"] = response.json()["access_token"]
+        if services.login(email, password):
+            st.session_state["authenticated"] = True
             st.session_state["email"] = email
             st.rerun()
-        except Exception:  # noqa: BLE001
+        else:
             st.error("Identifiants invalides.")
 
     st.stop()

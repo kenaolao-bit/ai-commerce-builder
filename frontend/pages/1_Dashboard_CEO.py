@@ -1,6 +1,6 @@
 import streamlit as st
 
-from frontend.components.api_client import get
+from frontend import services
 from frontend.components.auth import require_login
 
 st.set_page_config(page_title="Dashboard CEO", page_icon="📊", layout="wide")
@@ -11,7 +11,7 @@ if st.button("Rafraichir"):
     st.rerun()
 
 try:
-    kpis = get("/dashboard/kpis")
+    kpis = services.get_dashboard_kpis()
 except Exception as exc:  # noqa: BLE001
     st.error(f"Impossible de charger les indicateurs : {exc}")
     st.stop()

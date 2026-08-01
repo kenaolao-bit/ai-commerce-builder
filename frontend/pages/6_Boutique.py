@@ -1,6 +1,6 @@
 import streamlit as st
 
-from frontend.components.api_client import get
+from frontend import services
 from frontend.components.auth import require_login
 from frontend.components.campaign_selector import advance_button, select_campaign
 
@@ -14,9 +14,8 @@ if campaign is None:
 
 advance_button(campaign["id"])
 
-try:
-    store = get(f"/campaigns/{campaign['id']}/store")
-except Exception:
+store = services.get_store(campaign["id"])
+if store is None:
     st.info("Boutique non encore initialisee. Executez l'etape ci-dessus.")
     st.stop()
 
@@ -24,14 +23,12 @@ col1, col2 = st.columns(2)
 col1.metric("Statut", store["statut"])
 col2.metric("Score qualite", f"{store['score_qualite']:.0f}/100")
 
-try:
-    quality = get(f"/campaigns/{campaign['id']}/store/quality")
+quality = services.get_store_quality(campaign["id"])
+if quality is not None:
     with st.expander("Checklist qualite"):
         for c in quality["checklist"]:
             icone = "✅" if c["ok"] else "❌"
             st.write(f"{icone} {c['critere']} — {c['detail']}")
-except Exception:
-    pass
 
 st.subheader("Pages generees")
 for page in store.get("pages", []):

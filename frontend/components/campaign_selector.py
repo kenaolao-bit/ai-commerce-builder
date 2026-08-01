@@ -2,11 +2,11 @@
 
 import streamlit as st
 
-from frontend.components.api_client import get, post
+from frontend import services
 
 
 def select_campaign() -> dict | None:
-    campaigns = get("/campaigns")
+    campaigns = services.list_campaigns()
     if not campaigns:
         st.info("Aucune campagne. Creez-en une depuis la page 'Nouvelle Campagne'.")
         return None
@@ -19,7 +19,7 @@ def select_campaign() -> dict | None:
 def advance_button(campaign_id: int, label: str = "Executer l'etape suivante") -> None:
     if st.button(label):
         try:
-            result = post(f"/campaigns/{campaign_id}/advance")
+            result = services.advance_campaign(campaign_id)
             label_etape = result["resultat"].get("label", "")
             st.success(f"Etape {result['etape_executee']}/8 executee : {label_etape}")
             st.json(result["resultat"])

@@ -1,6 +1,6 @@
 import streamlit as st
 
-from frontend.components.api_client import get
+from frontend import services
 from frontend.components.auth import require_login
 from frontend.components.campaign_selector import advance_button, select_campaign
 
@@ -14,7 +14,7 @@ if campaign is None:
 
 advance_button(campaign["id"], "Executer l'etape 'Preparation du marketing'")
 
-assets = get(f"/campaigns/{campaign['id']}/marketing")
+assets = services.list_marketing_assets(campaign["id"])
 if not assets:
     st.info("Aucun contenu marketing pour le moment. Executez l'etape ci-dessus.")
     st.stop()

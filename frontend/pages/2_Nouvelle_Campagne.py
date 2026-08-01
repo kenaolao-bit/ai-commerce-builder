@@ -1,6 +1,6 @@
 import streamlit as st
 
-from frontend.components.api_client import get, post
+from frontend import services
 from frontend.components.auth import require_login
 
 st.set_page_config(page_title="Nouvelle Campagne", page_icon="🚀", layout="wide")
@@ -17,15 +17,8 @@ with st.form("nouvelle_campagne"):
 
 if submitted:
     try:
-        campaign = post(
-            "/campaigns",
-            json={
-                "nom": nom,
-                "pays_cible": pays_cible,
-                "langue": langue,
-                "budget": budget,
-                "objectif": objectif,
-            },
+        campaign = services.create_campaign(
+            nom=nom, pays_cible=pays_cible, langue=langue, budget=budget, objectif=objectif
         )
         st.success(f"Campagne #{campaign['id']} creee : {campaign['nom']}")
         st.json(campaign)
@@ -35,7 +28,7 @@ if submitted:
 st.divider()
 st.subheader("Campagnes existantes")
 try:
-    campaigns = get("/campaigns")
+    campaigns = services.list_campaigns()
     if campaigns:
         st.dataframe(campaigns, use_container_width=True)
     else:

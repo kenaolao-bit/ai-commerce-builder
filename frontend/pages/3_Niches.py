@@ -1,6 +1,6 @@
 import streamlit as st
 
-from frontend.components.api_client import get, post
+from frontend import services
 from frontend.components.auth import require_login
 from frontend.components.campaign_selector import advance_button, select_campaign
 
@@ -15,7 +15,7 @@ if campaign is None:
 advance_button(campaign["id"], "Executer l'etape 'Recherche de niche'")
 
 st.subheader("Niches proposees")
-niches = get(f"/campaigns/{campaign['id']}/niches")
+niches = services.list_niches(campaign["id"])
 if not niches:
     st.info("Aucune niche pour le moment. Executez l'etape 1 ci-dessus.")
     st.stop()
@@ -27,7 +27,7 @@ options = {f"#{n['id']} - {n['nom']} (score {n['score_opportunite']})": n["id"] 
 choix = st.selectbox("Niche", list(options.keys()))
 if st.button("Retenir cette niche"):
     try:
-        niche = post(f"/campaigns/{campaign['id']}/niches/select", json={"niche_id": options[choix]})
+        niche = services.select_niche(campaign["id"], options[choix])
         st.success(f"Niche retenue : {niche['nom']}")
         st.rerun()
     except Exception as exc:  # noqa: BLE001
