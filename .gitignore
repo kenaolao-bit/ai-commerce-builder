@@ -1,0 +1,45 @@
+# --- Secrets (Principe 11 : jamais de secrets dans Git) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+credentials.json
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.Python
+build/
+dist/
+
+# --- Base de données locale ---
+*.db
+*.sqlite
+*.sqlite3
+ai_commerce_builder.db
+
+# --- Tests / couverture ---
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Streamlit ---
+.streamlit/secrets.toml
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+logs/
