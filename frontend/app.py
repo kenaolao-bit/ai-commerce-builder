@@ -1,5 +1,8 @@
 """Point d'entree Streamlit (030_Technical_Specification, section 3)."""
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import streamlit as st
 
 from frontend.components.auth import require_login
